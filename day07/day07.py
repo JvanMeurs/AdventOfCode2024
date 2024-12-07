@@ -27,7 +27,6 @@ def get_total_sum(data,list_func):
    
         if total in elements_list:
             sum_pass += total
-        
     return sum_pass
 
 def add_multiply(val,element):
