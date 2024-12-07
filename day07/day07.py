@@ -1,11 +1,3 @@
-import math
-
-def sum_all(total,elements):
-    return total == sum(elements)
-
-def multiply_all(total, elements):
-    return total == math.prod(elements)
-
 def read_input(file_name):
     with open(file_name,'r') as input:
         return input.read().strip().splitlines()
@@ -31,7 +23,6 @@ def get_total_sum(data,list_func):
 
 def add_multiply(val,element):
     return [val + element, val * element]
-
 
 def add_multiply_concat(val,element):
     return [val + element, val * element, int(f"{val}{element}")]
