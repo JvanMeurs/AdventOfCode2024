@@ -1,115 +1,119 @@
-import numpy as np
-
-def parse_input(file_name):
-
-    with open(file_name, 'r') as file:
-        lines = file.read().strip().split('\n')
-
-    grid = [list(line) for line in lines]
-
-    return np.array(grid)
-
 def turn_90(old_direction):
-
     match old_direction:
-        case "^":
-            new_direction = ">"
-        case ">":
-            new_direction = "v"
-        case "v":
-            new_direction = "<"
-        case "<":
-            new_direction = "^"
-    
+        case 0 | 1 | 2:
+            new_direction = old_direction + 1
+        case _:
+            new_direction = 0
     return new_direction
 
-def walk(direction,x,y):
+def walk(direction,old_point):
     match direction:
-        case "^":
-            new_x = x
-            new_y = y-1
-        case ">":
-            new_x = x+1
-            new_y = y
-        case "v":
-            new_x = x
-            new_y = y+1
-        case "<":
-            new_x = x-1
-            new_y = y
-    return new_x,new_y
-
-def check_collision(map,x,y):
-    return map[y,x] == "#"
-
-def check_out_of_bounds(map,x,y):
-    max_y, max_x = map.shape
-    return x < 0 or x >= max_x or y < 0 or y >= max_y
-
-def check_loop(map,x,y,direction):
-    return map[y,x] == direction
+        case 0:
+            new_point = (old_point[0],old_point[1]-1)
+        case 1:
+            new_point = (old_point[0]+1,old_point[1])
+        case 2:
+            new_point = (old_point[0],old_point[1]+1)
+        case 3:
+            new_point = (old_point[0]-1,old_point[1])
+    return new_point
 
 
-def visited_tiles(map):    
-    x,y,direction = find_start(map)
-    x_og,y_og,d_og = find_start(map)
+def check_loop(grid,point,direction):
+    return get_bit(grid[point],direction)
 
+
+def visited_tiles(grid,point,direction):    
     while True:
-        new_x, new_y = walk(direction,x,y)
-        if check_out_of_bounds(map,new_x,new_y):
-            return map,0
-        if check_loop(map,new_x,new_y,direction):
-            return map,1
-        if not check_collision(map,new_x,new_y):
-            x,y = new_x, new_y
-            map[y,x] = direction
+        new_point = walk(direction,point)
+        if new_point not in grid.keys():
+            return grid,0
+        if grid[new_point] is not None:
+            if check_loop(grid,new_point,direction):
+                return grid,1
+            point = new_point
+            grid[point] = set_bit(grid[point],direction)
             continue
         direction = turn_90(direction)
+        grid[point] = set_bit(grid[point],direction)
 
-def find_start(map):
-    guard = ["<",">","^","v"]
+def filter_visited_points(grid):
+    visited_points = []
+    for point,value in grid.items():
+        if value is not None and value > 0:
+            visited_points.append(point)
 
-    for i,direction in enumerate(guard):
-        y,x = np.where(map == direction)
-        if x.size != 0:
-            return x, y, direction
+    return visited_points
 
-def count_visited_tiles(map):
-    x=np.array([])
-    y=np.array([])
-    
-    for i in ["<",">","^","v"]:
-        temp = np.where(map == i)
-        x = np.concatenate((x,temp[1]))
-        y = np.concatenate((y,temp[0]))       
-    
-    return x.size, x, y
-
-def set_obstacle(map,x,y):
-    new_map = map
-    x_og, y_og, _ = find_start(new_map)
-    if not(x == x_og and y == y_og):
-        new_map[y,x] = "#"
-    return new_map
-
-def loop_obstacle_positions(map, x, y):
-    print(f"Size = {map.shape}")
+def loop_obstacle_positions(grid, start_point,start_direction,visited_points):
     nr_loops = 0
-    for i in range(x.size):
-        print(f"i,x,y = {i, x[i],y[i]}")
-        tainted_map = set_obstacle(map.copy(),np.int16(x[i]),np.int16(y[i]))
-        tainted_map, isLoop = visited_tiles(tainted_map)
+    for visited_point in visited_points:
+        if visited_point == start_point:
+            continue
+        
+        grid_copy = grid.copy()
+        grid_copy[visited_point] = None
+        _, isLoop = visited_tiles(grid_copy,start_point,start_direction)
         nr_loops += isLoop
 
     return nr_loops
 
+def parse_input_dict(file_name):
+    with open(file_name,'r') as input:
+        data = input.read().strip().splitlines()
+
+    grid = {}
+    for y,line in enumerate(data):
+        for x in range(len(line)):
+            match line[x]:
+                case "#":
+                    T = None
+                case "^":
+                    T = 0b1
+                    start_point = (x,y)
+                    start_direction = 0
+                case ">":
+                    T = 0b10
+                    start_point = (x,y)
+                    start_direction = 1
+                case "v":
+                    T = 0b100
+                    start_point = (x,y)
+                    start_direction = 2
+                case "<":
+                    T = 0b1000
+                    start_point = (x,y)
+                    start_direction = 3
+                case _:
+                    T = 0
+            grid.update({(x,y): T})
+
+    return grid, start_point, start_direction
+
+def set_bit(value,bit):
+    return value | (1 << bit)
+
+def get_bit(value,bit):
+    return value & (1 << bit)
+
+
 if __name__ == ("__main__"):
-    map = parse_input("input.txt")
-    visited_map = visited_tiles(map.copy())
-    nr_visited_tiles,x,y = count_visited_tiles(visited_map[0])
+    
+    grid, start_point, start_direction = parse_input_dict("sample_input.txt")
+    grid_copy = grid.copy()
+    grid_copy,_ = visited_tiles(grid_copy, start_point, start_direction)
+    visited_points = filter_visited_points(grid_copy)
+    print(f"Answer day 6 part 1 from sample input: {len(visited_points)}")
 
-    print(loop_obstacle_positions(map.copy(),x,y))
+    nr_loops = loop_obstacle_positions(grid,start_point,start_direction,visited_points)
+    print(f"Answer day 6 part 2 from sample input: {nr_loops}")
 
-    # map = parse_input("input.txt")
-    # visited_map = visited_tiles(map)
-    # print(count_visited_tiles(visited_map))
+    grid, start_point, start_direction = parse_input_dict("input.txt")
+    grid_copy = grid.copy()
+    grid_copy,_ = visited_tiles(grid_copy, start_point, start_direction)
+    visited_points = filter_visited_points(grid_copy)
+    print(f"Answer day 6 part 1 from input: {len(visited_points)}")
+
+    nr_loops = loop_obstacle_positions(grid,start_point,start_direction,visited_points)
+    print(f"Answer day 6 part 2 from input: {nr_loops}")
+
