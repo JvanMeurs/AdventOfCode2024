@@ -68,8 +68,6 @@ def rearrange_data_blocks(sparse_data,empty_heap):
             sparse_data[i + 1 + j] = None
         
         heapq.heappush(empty_heap[best_width-next_id_len],smallest_idx+next_id_len)
-
-
     return sparse_data
 
 def rearrange_data(sparse_data,empty_heap):
@@ -117,13 +115,6 @@ if __name__ == ("__main__"):
     sparse_data,empty_heap = parse_input_blocks(data)
     sparse_data = rearrange_data_blocks(sparse_data,empty_heap)
     checksum = calculate_checksum(sparse_data)
-
-    with open("log",'w') as log_file:
-        print(sparse_data,file=log_file)
-
-    with open("log2",'w') as log_file:
-        print(empty_heap,file=log_file)
-
     print(f"Day 9 part 2 answer from {file_name}: {checksum}")
     
     
