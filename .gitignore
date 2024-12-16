@@ -163,4 +163,4 @@ cython_debug/
 day11/aa
 day06/log
 day08/test
-day11/.vscode/settings.json
+*/.vscode/*
