@@ -30,7 +30,7 @@ def traverse_grid(grid):
         perimeter = 0
         for delta_row, delta_col in adjacency:
             new_row, new_col = curr_row + delta_row, curr_col + delta_col
-            if 0 <= new_row < nr_rows and 0 <= new_col < nr_cols:
+            if inbounds(new_row, nr_rows) and inbounds(new_col, nr_cols):
                 if not visited[new_row][new_col]:
                     if grid[new_row][new_col] == grid[curr_row][curr_col]:
                         visited[new_row][new_col] = True
@@ -61,15 +61,27 @@ def traverse_grid(grid):
                 for vertex,count in vertices.items():
                     sides += count%2
                     if count == 2:
-                        if 0 <= vertex[0] - 1 < nr_rows and 0 <= vertex[1] - 1 < nr_cols and 0 <= vertex[0] < nr_rows and 0 <= vertex[1] < nr_cols:
-                            if not visited[vertex[0] - 1][vertex[1] - 1] and not visited[vertex[0]][vertex[1]]:
+                        row,col = vertex
+                        if (inbounds(row - 1,nr_rows)     and 
+                            inbounds(col - 1,nr_cols)     and 
+                            inbounds(row,    nr_rows)     and 
+                            inbounds(col,    nr_cols)     and 
+                            not visited[row - 1][col - 1] and 
+                            not visited[row][col]):
                                 sides += 2
-                        if 0 <= vertex[0] - 1 < nr_rows and 0 <= vertex[1] < nr_cols and 0 <= vertex[0] < nr_rows and 0 <= vertex[1] - 1 < nr_cols:
-                            if not visited[vertex[0] - 1][vertex[1]] and not visited[vertex[0]][vertex[1] - 1]:
+                        if (inbounds(row - 1,nr_rows) and 
+                            inbounds(col    ,nr_cols) and 
+                            inbounds(row    ,nr_rows) and 
+                            inbounds(col - 1,nr_cols) and 
+                            not visited[row - 1][col] and 
+                            not visited[row][col-1]):
                                 sides += 2
-                plants[len(plants)]={"area": total_area, "perimeter":total_perimeter,"sides": sides}
 
+                plants[len(plants)]={"area": total_area, "perimeter":total_perimeter,"sides": sides}
     return plants
+
+def inbounds(i,imax):
+    return 0 <= i < imax
 
 def calculate_total_cost(plants):
     costs = 0
