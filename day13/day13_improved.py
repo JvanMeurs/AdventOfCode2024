@@ -30,8 +30,8 @@ def parse_input(file_name):
 def solve_single_input(data):
     b = (data["Ax"]*data["y"] - data["Ay"]*data["x"]) // (data["Ax"]*data["By"] - data["Ay"]*data["Bx"])
     a = (data["x"]*data["By"] - data["y"]*data["Bx"]) // (data["Ax"]*data["By"] - data["Ay"]*data["Bx"])
-    if data["Ax"]*a+data["Bx"]*b==data["x"] and data["Ay"]*a+data["By"]*b==data["y"]:
-        return 3*a+b
+    if data["Ax"]*a + data["Bx"]*b == data["x"] and data["Ay"]*a + data["By"]*b == data["y"]:
+        return 3*a + b
     else:
         return 0
 
